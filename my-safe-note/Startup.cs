@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using MySafeNote.DataAccess;
 
 namespace my_safe_note
 {
@@ -24,6 +26,12 @@ namespace my_safe_note
             services.AddControllersWithViews();
 
             services.AddSwaggerGen();
+
+            var connection = Configuration.GetConnectionString("Default");
+            services.AddDbContext<DataContext>(options =>
+            {
+                options.UseSqlite(Configuration.GetConnectionString("Default"));
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
