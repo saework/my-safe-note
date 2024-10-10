@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.EntityFrameworkCore;
+using MySafeNote.Core;
+using MySafeNote.DataAccess;
 
 namespace my_safe_note.Controllers
 {
@@ -12,18 +13,33 @@ namespace my_safe_note.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        // GET: api/<ValuesController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly DataContext _dataContext;
+
+        public UserController(DataContext dataContext)
         {
-            return new string[] { "value1", "value2" };
+            _dataContext = dataContext;
         }
 
-        // GET api/<ValuesController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // GET: api/<UserController>
+        //[HttpGet]
+        //public IEnumerable<User> Get()
+        //{
+        //    return _dataContext.Users.ToList();
+        //}
+
+        // GET: api/User
+        [HttpGet]
+        public async Task<IEnumerable<User>> Get()
         {
-            return "value";
+            return await _dataContext.Users.ToListAsync();
+        }
+
+        // GET api/User/5
+        [HttpGet("{id}")]
+        public async Task<User> Get(int id)
+        {
+            var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            return user;
         }
 
         // POST api/<ValuesController>
@@ -32,16 +48,49 @@ namespace my_safe_note.Controllers
         {
         }
 
-        // PUT api/<ValuesController>/5
+        //// PUT api/<ValuesController>/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
+
+        // PUT api/User/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult<User>> UpdateUser(int id, [FromBody] User updatedUser)
         {
+            // Имитация асинхронной операции.
+            //await Task.Delay(10); 
+
+            if (updatedUser is null)
+            {
+                return BadRequest("updatedUser пустой");
+            }
+
+            var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            if (user == null)
+            {
+                return NotFound($"User с ID: {id} не найден.");
+            }
+            // Обновляем данные пользователя
+            user.Email = updatedUser.Email;
+            user.PasswordHash = updatedUser.PasswordHash;
+            await _dataContext.SaveChangesAsync(); 
+
+            return Ok(user);
         }
 
-        // DELETE api/<ValuesController>/5
+        // DELETE api/User/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult<int>> Delete(int id)
         {
+            var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            if (user != null)
+            {
+                _dataContext.Users.Remove(user);
+                return Ok(id);
+            }
+            else
+                return NotFound($"User с ID: {id} не найден.");
         }
     }
 }
