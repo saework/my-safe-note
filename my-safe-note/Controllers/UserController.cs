@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MySafeNote.Core;
 using MySafeNote.DataAccess;
+using MySafeNote.WebHost.Model;
 
 namespace my_safe_note.Controllers
 {
@@ -42,10 +43,41 @@ namespace my_safe_note.Controllers
             return user;
         }
 
-        // POST api/<ValuesController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        //// POST api/<ValuesController>
+        //[HttpPost]
+        //public void Post([FromBody] string value)
+        //{
+        //}
+
+        [HttpPost("createuser")]
+        public async Task<ActionResult<User>> CreateUser([FromBody] UserDto userDto)
         {
+            // Проверяем, что данные в данные валидны
+            if (userDto == null || string.IsNullOrWhiteSpace(userDto.Email) || string.IsNullOrWhiteSpace(userDto.Password))
+            {
+                return BadRequest("Некорректные данные.");
+            }
+            var userExists = await _dataContext.Users.AnyAsync(x => x.Email == userDto.Email.Trim());
+            if (userExists)
+            {
+                return NotFound($"User с Email: {userDto.Email} уже создан.");
+            }
+            try
+            {
+                var passwordHash = Utils.HashPassword(userDto.Password);
+                var newUser = new User { Email = userDto.Email, PasswordHash = passwordHash };
+                _dataContext.Users.Add(newUser);
+                _dataContext.SaveChanges();
+                return Ok(newUser);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Внутренняя ошибка сервера.");
+            }
         }
 
         //// PUT api/<ValuesController>/5
@@ -69,7 +101,7 @@ namespace my_safe_note.Controllers
             var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
             {
-                return NotFound($"User с ID: {id} не найден.");
+                return BadRequest($"User с ID: {id} не найден.");
             }
             // Обновляем данные пользователя
             user.Email = updatedUser.Email;
@@ -87,6 +119,7 @@ namespace my_safe_note.Controllers
             if (user != null)
             {
                 _dataContext.Users.Remove(user);
+                await _dataContext.SaveChangesAsync();
                 return Ok(id);
             }
             else
