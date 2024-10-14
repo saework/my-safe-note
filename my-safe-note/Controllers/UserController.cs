@@ -30,14 +30,14 @@ namespace my_safe_note.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<IEnumerable<User>> Get()
+        public async Task<IEnumerable<User>> GetUsersAsync()
         {
             return await _dataContext.Users.ToListAsync();
         }
 
         // GET api/User/5
         [HttpGet("{id}")]
-        public async Task<User> Get(int id)
+        public async Task<User> GetUserByIdAsync(int id)
         {
             var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             return user;
@@ -49,8 +49,9 @@ namespace my_safe_note.Controllers
         //{
         //}
 
-        [HttpPost("createuser")]
-        public async Task<ActionResult<User>> CreateUser([FromBody] UserDto userDto)
+        //[HttpPost("createuser")]
+        [HttpPost]
+        public async Task<ActionResult<User>> CreateUserAsync([FromBody] UserRequest userDto)
         {
             // Проверяем, что данные в данные валидны
             if (userDto == null || string.IsNullOrWhiteSpace(userDto.Email) || string.IsNullOrWhiteSpace(userDto.Password))
@@ -88,12 +89,12 @@ namespace my_safe_note.Controllers
 
         // PUT api/User/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<User>> UpdateUser(int id, [FromBody] User updatedUser)
+        public async Task<ActionResult<User>> ChangeUserByIdAsync(int id, [FromBody] UserRequest changedUser)
         {
             // Имитация асинхронной операции.
             //await Task.Delay(10); 
 
-            if (updatedUser is null)
+            if (changedUser is null)
             {
                 return BadRequest("updatedUser пустой");
             }
@@ -104,8 +105,9 @@ namespace my_safe_note.Controllers
                 return BadRequest($"User с ID: {id} не найден.");
             }
             // Обновляем данные пользователя
-            user.Email = updatedUser.Email;
-            user.PasswordHash = updatedUser.PasswordHash;
+            user.Email = changedUser.Email;
+            var passwordHash = Utils.HashPassword(changedUser.Password);
+            user.PasswordHash = passwordHash;
             await _dataContext.SaveChangesAsync(); 
 
             return Ok(user);
@@ -113,7 +115,7 @@ namespace my_safe_note.Controllers
 
         // DELETE api/User/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<int>> Delete(int id)
+        public async Task<ActionResult<int>> DeleteUserByIdAsync(int id)
         {
             var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (user != null)
