@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using MySafeNote.Core;
 using MySafeNote.Core.Abstractions;
 
 namespace MySafeNote.DataAccess.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : EfRepository<User>, IUserRepository
     {
-        public UserRepository(DataContext context)// : base(context)
+        public UserRepository(DataContext context) : base(context)
         {
         }
 
-        public async Task<User> GetUsersAsync(Expression<Func<User, bool>> predicate)
-        {
-            return await DbSet.FirstOrDefaultAsync(predicate);
-        }
+        //public async Task<User> GetUsersAsync(Expression<Func<User, bool>> predicate)
+        //{
+        //    return await DbSet.FirstOrDefaultAsync(predicate);
+        //}
     }
 }

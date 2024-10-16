@@ -4,9 +4,8 @@ using System.Text;
 
 namespace MySafeNote.Core
 {
-    public class Note
+    public class Note : BaseEntity
     {
-        public int Id { get; set; }
         public int Number { get; set; }
         public string Title { get; set; }
         public Guid BodyLink { get; set; }

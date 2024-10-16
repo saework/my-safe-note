@@ -77,7 +77,7 @@ namespace my_safe_note.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Внутренняя ошибка сервера.");
+                return StatusCode(500, $"Внутренняя ошибка сервера. {ex.Message}");
             }
         }
 
