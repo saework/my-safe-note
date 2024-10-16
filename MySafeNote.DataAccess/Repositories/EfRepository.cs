@@ -26,7 +26,7 @@ namespace MySafeNote.DataAccess.Repositories
             return entity.Id;
         }
 
-        public async Task<ICollection<T>> GetAllAsync()
+        public async Task<List<T>> GetAllAsync()
         {
             return await DbSet.AsNoTracking().ToListAsync();
         }

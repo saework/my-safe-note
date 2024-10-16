@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace my_safe_note
 {
-    public class Utils
+    public class Services
     {
         public static string HashPassword(string password)
         {
