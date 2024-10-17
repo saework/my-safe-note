@@ -12,6 +12,6 @@ namespace MySafeNote.Core.Abstractions
         Task<T> GetByIdAsync(int id);
         Task<int> CreateAsync(T entity);
         Task<T> UpdateAsync(T entity);
-        Task RemoveAsync(int id);
+        Task<int> RemoveAsync(int id);
     }
 }

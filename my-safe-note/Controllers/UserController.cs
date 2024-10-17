@@ -16,7 +16,7 @@ namespace my_safe_note.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly DataContext _dataContext;
+        //private readonly DataContext _dataContext;
 
         //public UserController(DataContext dataContext)
         //{
@@ -104,7 +104,8 @@ namespace my_safe_note.Controllers
                 return BadRequest("updatedUser пустой");
             }
 
-            var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            //var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 return BadRequest($"User с ID: {id} не найден.");
@@ -113,8 +114,8 @@ namespace my_safe_note.Controllers
             user.Email = changedUser.Email;
             var passwordHash = Services.HashPassword(changedUser.Password);
             user.PasswordHash = passwordHash;
-            await _dataContext.SaveChangesAsync(); 
-
+            //await _dataContext.SaveChangesAsync(); 
+            await _userRepository.UpdateAsync(user);
             return Ok(user);
         }
 
@@ -122,15 +123,18 @@ namespace my_safe_note.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<int>> DeleteUserByIdAsync(int id)
         {
-            var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
-            if (user != null)
-            {
-                _dataContext.Users.Remove(user);
-                await _dataContext.SaveChangesAsync();
-                return Ok(id);
-            }
-            else
-                return NotFound($"User с ID: {id} не найден.");
+            //var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+            //var user = await _userRepository.GetByIdAsync(id);
+            //if (user != null)
+            //{
+            //    _dataContext.Users.Remove(user);
+            //    await _dataContext.SaveChangesAsync();
+            //    return Ok(id);
+            //}
+            //else
+            //    return NotFound($"User с ID: {id} не найден.");
+            var deletedId = await _userRepository.RemoveAsync(id);
+            return Ok(deletedId);
         }
     }
 }

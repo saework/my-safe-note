@@ -36,11 +36,17 @@ namespace MySafeNote.DataAccess.Repositories
             return await DbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task RemoveAsync(int id)
+        public async Task<int> RemoveAsync(int id)
         {
             var item = await DbSet.FirstOrDefaultAsync(e => e.Id == id);
-            DbSet.Remove(item);
-            await SaveChanges();
+            if (item != null)
+            {
+                DbSet.Remove(item);
+                await SaveChanges();
+                return id;
+            }
+            else
+                return 0;
         }
 
         public async Task<T> UpdateAsync(T entity)

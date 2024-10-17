@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using MySafeNote.DataAccess;
+using MySafeNote.DataAccess.Repositories;
+using MySafeNote.Core.Abstractions;
 
 namespace my_safe_note
 {
@@ -25,11 +27,12 @@ namespace my_safe_note
         {
             //services.AddControllersWithViews();
             services.AddControllers();
-
             services.AddSwaggerGen();
 
             var connection = Configuration.GetConnectionString("Default");
             services.AddDbContext<DataContext>(options => options.UseSqlite(connection));
+
+            services.AddScoped<IUserRepository, UserRepository>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
