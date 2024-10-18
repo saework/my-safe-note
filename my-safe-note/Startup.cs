@@ -33,6 +33,7 @@ namespace my_safe_note
             services.AddDbContext<DataContext>(options => options.UseSqlite(connection));
 
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<INoteRepository, NoteRepository>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

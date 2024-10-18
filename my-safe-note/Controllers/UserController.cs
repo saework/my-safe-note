@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using MySafeNote.Core;
 using MySafeNote.Core.Abstractions;
-using MySafeNote.DataAccess;
 using MySafeNote.WebHost.Model;
 
 namespace my_safe_note.Controllers
@@ -16,24 +13,10 @@ namespace my_safe_note.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        //private readonly DataContext _dataContext;
-
-        //public UserController(DataContext dataContext)
-        //{
-        //    _dataContext = dataContext;
-        //}
-
         public UserController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
-
-        // GET: api/User
-        //[HttpGet]
-        //public async Task<IEnumerable<User>> GetUsersAsync()
-        //{
-        //    return await _dataContext.Users.ToListAsync();
-        //}
 
         // GET: api/User
         [HttpGet]
@@ -47,21 +30,22 @@ namespace my_safe_note.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserByIdAsync(int id)
         {
-            //var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound($"User с ID: {id} не найден.");
+            }
             return Ok(user);
         }
 
-        //[HttpPost("createuser")]
         [HttpPost]
-        public async Task<ActionResult<int>> CreateUserAsync([FromBody] UserRequest userDto)
+        public async Task<ActionResult<int>> CreateUserAsync([FromBody] UserDto userDto)
         {
             // Проверяем, что данные в данные валидны
-            if (userDto == null || string.IsNullOrWhiteSpace(userDto.Email) || string.IsNullOrWhiteSpace(userDto.Password))
+            if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
             {
                 return BadRequest("Некорректные данные.");
             }
-            //var userExists = await _dataContext.Users.AnyAsync(x => x.Email == userDto.Email.Trim());
             var userExists = _userRepository.CheckUserExists(userDto.Email.Trim());
             if (userExists.Result)
             {
@@ -71,10 +55,8 @@ namespace my_safe_note.Controllers
             {
                 var passwordHash = Services.HashPassword(userDto.Password);
                 var newUser = new User { Email = userDto.Email, PasswordHash = passwordHash };
-                //_dataContext.Users.Add(newUser);
-                //_dataContext.SaveChanges();
                 var newUserId = await _userRepository.CreateAsync(newUser);
-                return Ok(newUserId);
+                return CreatedAtAction(nameof(GetUserByIdAsync), new { id = newUserId }, newUserId);
             }
             catch (ArgumentException ex)
             {
@@ -86,25 +68,14 @@ namespace my_safe_note.Controllers
             }
         }
 
-        //// PUT api/<ValuesController>/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
-
         // PUT api/User/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<User>> ChangeUserByIdAsync(int id, [FromBody] UserRequest changedUser)
+        public async Task<ActionResult<User>> ChangeUserByIdAsync(int id, [FromBody] UserDto changedUser)
         {
-            // Имитация асинхронной операции.
-            //await Task.Delay(10); 
-
             if (changedUser is null)
             {
                 return BadRequest("updatedUser пустой");
             }
-
-            //var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
@@ -114,7 +85,6 @@ namespace my_safe_note.Controllers
             user.Email = changedUser.Email;
             var passwordHash = Services.HashPassword(changedUser.Password);
             user.PasswordHash = passwordHash;
-            //await _dataContext.SaveChangesAsync(); 
             await _userRepository.UpdateAsync(user);
             return Ok(user);
         }
@@ -123,16 +93,6 @@ namespace my_safe_note.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<int>> DeleteUserByIdAsync(int id)
         {
-            //var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == id);
-            //var user = await _userRepository.GetByIdAsync(id);
-            //if (user != null)
-            //{
-            //    _dataContext.Users.Remove(user);
-            //    await _dataContext.SaveChangesAsync();
-            //    return Ok(id);
-            //}
-            //else
-            //    return NotFound($"User с ID: {id} не найден.");
             var deletedId = await _userRepository.RemoveAsync(id);
             return Ok(deletedId);
         }

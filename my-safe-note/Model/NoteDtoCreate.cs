@@ -1,18 +1,14 @@
 ﻿using System;
 
-namespace MySafeNote.Core
+namespace MySafeNote.WebHost.Model
 {
-    public class Note : BaseEntity
+    public class NoteDtoCreate
     {
         public int Number { get; set; }
         public string Title { get; set; }
         public Guid BodyLink { get; set; }
-        public string NotePasswordHash { get; set; }
+        public string NotePassword { get; set; }
         public DateTime CreateDate { get; set; }
-        public DateTime LastChangeDate { get; set; }
         public int UserId { get; set; }
-        public User User { get; set; }
-
-
     }
 }
