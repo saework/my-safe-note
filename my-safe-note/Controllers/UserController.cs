@@ -46,8 +46,8 @@ namespace my_safe_note.Controllers
             {
                 return BadRequest("Некорректные данные.");
             }
-            var userExists = _userRepository.CheckUserExists(userDto.Email.Trim());
-            if (userExists.Result)
+            var userExists = await _userRepository.CheckUserExists(userDto.Email.Trim());
+            if (userExists)
             {
                 return NotFound($"User с Email: {userDto.Email} уже создан.");
             }

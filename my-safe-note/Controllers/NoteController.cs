@@ -13,9 +13,11 @@ namespace my_safe_note.Controllers
     public class NoteController : ControllerBase
     {
         private readonly INoteRepository _noteRepository;
-        public NoteController(INoteRepository noteRepository)
+        private readonly IUserRepository _userRepository;
+        public NoteController(INoteRepository noteRepository, IUserRepository userRepository)
         {
             _noteRepository = noteRepository;
+            _userRepository = userRepository;
         }
 
         // GET: api/Note
@@ -56,10 +58,16 @@ namespace my_safe_note.Controllers
                 var notePasswordHash = string.Empty;
                 if (!string.IsNullOrEmpty(notePassword))
                     notePasswordHash = Services.HashPassword(notePassword);
+                var userId = noteDto.UserId;
+
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    return BadRequest("$Пользователя с ИД: {userId} не существует.");
 
                 var newNote = new Note { Number = number, Title = title, 
                     BodyLink = bodyLink, NotePasswordHash = notePasswordHash,
-                    CreateDate = createDate, LastChangeDate = createDate,
+                    CreateDate = createDate, LastChangeDate = createDate, 
+                    UserId = userId
                 };
                 var newNoteId = await _noteRepository.CreateAsync(newNote);
                 return Ok(newNoteId);
@@ -77,7 +85,7 @@ namespace my_safe_note.Controllers
 
         // PUT api/Note/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<User>> ChangeNoteByIdAsync(int id, [FromBody] NoteDtoChange changedNote)
+        public async Task<ActionResult<Note>> ChangeNoteByIdAsync(int id, [FromBody] NoteDtoChange changedNote)
         {
             if (changedNote is null)
             {
