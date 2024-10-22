@@ -50,8 +50,10 @@ namespace MySafeNote.DataAccess.Repositories
 
         public async Task<T> UpdateAsync(T entity)
         {
+            DbSet.Update(entity);
             await SaveChanges();
-            return await DbSet.FirstOrDefaultAsync(e => e.Id == entity.Id);
+            return entity;
+            //return await DbSet.FirstOrDefaultAsync(e => e.Id == entity.Id);
         }
 
         private async Task SaveChanges()
